@@ -8,7 +8,11 @@ import cv2
 import uuid
 import json
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder="public",
+    static_url_path=""
+)
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "models"
