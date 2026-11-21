@@ -1,0 +1,129 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PalmScan - Deteksi Kematangan Sawit</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <div class="navbar">
+
+        <div class="logo">🌴 PalmScan</div>
+
+        <div class="nav-links">
+            <a href="/" class="active">Deteksi</a>
+            <a href="/history">Riwayat</a>
+            <a href="/dashboard">Dashboard</a>
+        </div>
+
+    </div>
+
+    <div class="container">
+
+        <div class="hero">
+            <span class="tag">COMPUTER VISION APPLICATION</span>
+
+            <h1>
+                Deteksi Kematangan<br>
+                Buah Kelapa Sawit
+            </h1>
+
+            <p>
+                Unggah gambar tandan buah kelapa sawit untuk mendeteksi
+                tingkat kematangannya menggunakan model YOLO.
+            </p>
+        </div>
+
+        <div class="upload-card">
+
+            <h2>Mulai Deteksi</h2>
+
+            <p class="description">
+                Pilih model dan unggah gambar sawit.
+            </p>
+
+            <form id="detectForm">
+
+                <label for="modelSelect">Pilih Model</label>
+
+                <select id="modelSelect" name="model">
+                    <option value="yolov8s">YOLOv8s</option>
+                    <option value="yolo11s">YOLO11s</option>
+                </select>
+
+                <label for="imageInput">Upload Gambar</label>
+
+                <div class="upload-area">
+                    <input
+                        type="file"
+                        id="imageInput"
+                        name="image"
+                        accept=".jpg,.jpeg,.png"
+                        required
+                    >
+
+                    <p>Format JPG, JPEG, atau PNG</p>
+                </div>
+
+                <div id="previewBox" class="preview-box">
+                    <img
+                        id="previewImage"
+                        src=""
+                        alt="Preview gambar"
+                    >
+                </div>
+
+                <button type="submit" id="detectButton">
+                    Deteksi Sekarang
+                </button>
+
+            </form>
+
+            <p id="errorMessage" class="error-message"></p>
+
+            <p id="loadingState" class="loading-state">
+                Sedang memproses gambar...
+            </p>
+
+        </div>
+
+        <div id="resultSection" class="result-section">
+
+            <h2>Hasil Deteksi</h2>
+
+            <div class="result-image-box">
+                <img
+                    id="resultImage"
+                    src=""
+                    alt="Hasil deteksi"
+                >
+            </div>
+
+            <p id="resultModel"></p>
+
+            <h3>
+                Total Objek:
+                <span id="resultTotal">0</span>
+            </h3>
+
+            <div id="resultCounts" class="result-counts"></div>
+
+            <h3>Detail Deteksi</h3>
+
+            <div id="detectionTable"></div>
+
+        </div>
+
+    </div>
+    <footer>
+        <p>© 2026 PalmScan | Oil Palm Ripeness Detection</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>

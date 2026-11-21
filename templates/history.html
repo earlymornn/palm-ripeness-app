@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Deteksi - PalmScan</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="navbar">
+        <div class="logo">🌴 PalmScan</div>
+
+        <div class="nav-links">
+            <a href="/">Deteksi</a>
+            <a href="/history" class="active">Riwayat</a>
+            <a href="/dashboard">Dashboard</a>
+        </div>
+    </div>
+
+    <div class="container history-container">
+
+        <div class="history-header">
+            <span class="tag">DETECTION HISTORY</span>
+            <h1>Riwayat Deteksi</h1>
+            <p>
+                Lihat kembali seluruh gambar dan hasil deteksi
+                kematangan buah kelapa sawit.
+            </p>
+        </div>
+
+        <div class="history-summary">
+            <div class="summary-card">
+                <span>Total Pengujian</span>
+                <strong>{{ histories|length }}</strong>
+            </div>
+        </div>
+
+        {% if histories %}
+
+        <div class="history-grid">
+
+            {% for item in histories %}
+
+            <div class="history-card">
+
+                <img
+                    src="{{ item.image_path }}"
+                    alt="Hasil deteksi {{ item.filename }}"
+                    class="history-image"
+                >
+
+                <div class="history-content">
+
+                    <h3>{{ item.filename }}</h3>
+
+                    <p class="history-date">
+                        {{ item.created_at }}
+                    </p>
+
+                    <span class="model-badge">
+                        {{ item.model }}
+                    </span>
+
+                    <div class="history-total">
+                        Total Objek:
+                        <strong>{{ item.total }}</strong>
+                    </div>
+
+                    <div class="history-counts">
+                        <div>
+                            <span>Unripe</span>
+                            <strong>{{ item.counts.unripe }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Ripe</span>
+                            <strong>{{ item.counts.ripe }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Overripe</span>
+                            <strong>{{ item.counts.overripe }}</strong>
+                        </div>
+
+                        <div>
+                            <span>Empty</span>
+                            <strong>{{ item.counts.empty }}</strong>
+                        </div>
+                    </div>
+
+                    <details class="history-details">
+                        <summary>Lihat Detail Deteksi</summary>
+
+                        {% for detection in item.detections %}
+                        <div class="detection-item">
+                            <span>{{ loop.index }}. {{ detection.class }}</span>
+                            <strong>{{ detection.confidence }}%</strong>
+                        </div>
+                        {% else %}
+                        <p>Tidak ada objek terdeteksi.</p>
+                        {% endfor %}
+
+                    </details>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-history">
+            <div class="empty-icon">📂</div>
+            <h2>Belum Ada Riwayat</h2>
+            <p>Hasil deteksi yang kamu lakukan akan muncul di sini.</p>
+            <a href="/" class="history-button">Mulai Deteksi</a>
+        </div>
+
+        {% endif %}
+
+    </div>
+
+    <footer>
+        <p>© 2026 PalmScan | Oil Palm Ripeness Detection</p>
+    </footer>
+
+</body>
+</html>

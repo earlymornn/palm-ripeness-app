@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | PalmScan</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <div class="logo">🌴 PalmScan</div>
+
+        <div class="nav-links">
+            <a href="/">Deteksi</a>
+            <a href="/history">Riwayat</a>
+            <a href="/dashboard" class="active">Dashboard</a>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+
+        <!-- Header -->
+        <div class="dashboard-header">
+            <h1>Dashboard</h1>
+            <p>Ringkasan hasil deteksi kematangan buah kelapa sawit.</p>
+        </div>
+
+        <!-- Statistics -->
+        <div class="dashboard-stats">
+
+            <div class="dashboard-card">
+                <p>Total Pengujian</p>
+                <h2>{{ total_tests }}</h2>
+            </div>
+
+            <div class="dashboard-card">
+                <p>Total Objek Terdeteksi</p>
+                <h2>{{ total_objects }}</h2>
+            </div>
+
+        </div>
+
+        <!-- Class Distribution -->
+        <div class="dashboard-section">
+
+            <h2>Distribusi Kelas Kematangan</h2>
+
+            {% for class_name, count in class_totals.items() %}
+
+                <div class="class-row">
+
+                    <div class="class-info">
+                        <span>{{ class_name|capitalize }}</span>
+
+                        <strong>
+                            {{ count }}
+
+                            {% if total_objects > 0 %}
+                                ({{ "%.1f"|format(count / total_objects * 100) }}%)
+                            {% else %}
+                                (0%)
+                            {% endif %}
+                        </strong>
+                    </div>
+
+                    <div class="progress-track">
+                        <div
+                            class="progress-fill"
+                            data-percentage="{{ ((count / total_objects) * 100) if total_objects else 0 }}">
+                        </div>
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+        <!-- Model Usage -->
+        <div class="dashboard-section">
+
+            <h2>Penggunaan Model</h2>
+
+            <div class="model-grid">
+
+                <div class="model-box">
+                    <h3>YOLOv8s</h3>
+                    <strong>{{ model_totals.yolov8s }}</strong>
+                    <p>Pengujian</p>
+                </div>
+
+                <div class="model-box">
+                    <h3>YOLO11s</h3>
+                    <strong>{{ model_totals.yolo11s }}</strong>
+                    <p>Pengujian</p>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Recent Detection -->
+        <div class="dashboard-section">
+
+            <h2>Pengujian Terbaru</h2>
+
+            {% if recent_histories %}
+
+                <div class="recent-list">
+
+                    {% for item in recent_histories %}
+
+                        <div class="recent-item">
+
+                            <img
+                                src="{{ url_for('static', filename=item.image_path) }}"
+                                alt="Hasil deteksi">
+
+                            <div class="recent-info">
+
+                                <h3>{{ item.filename }}</h3>
+
+                                <p>Model: {{ item.model }}</p>
+
+                                <p>Total objek: {{ item.total }}</p>
+
+                                <p>{{ item.created_at }}</p>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% else %}
+
+                <div class="empty-dashboard">
+                    <p>Belum ada data pengujian.</p>
+                    <p>Silakan lakukan deteksi gambar terlebih dahulu.</p>
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    <footer>
+        <p>© 2026 PalmScan | Oil Palm Ripeness Detection</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+
+</body>
+</html>
