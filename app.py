@@ -27,10 +27,36 @@ ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png"}
 
 CLASS_NAMES = ["unripe", "ripe", "overripe", "empty"]
 
-models = {
-    "yolov8s": YOLO(str(MODEL_DIR / "yolov8s.pt")),
-    "yolo11s": YOLO(str(MODEL_DIR / "yolo11s.pt"))
-}
+# Model tidak langsung dimuat saat Flask dimulai
+models = {}
+
+
+# =========================
+# LOAD MODEL SAAT DIBUTUHKAN
+# =========================
+
+def get_model(model_name):
+
+    if model_name not in ["yolov8s", "yolo11s"]:
+        raise ValueError("Model tidak valid.")
+
+    if model_name not in models:
+
+        model_path = MODEL_DIR / f"{model_name}.pt"
+
+        if not model_path.exists():
+            raise FileNotFoundError(
+                f"File model tidak ditemukan: {model_path}"
+            )
+
+        models[model_name] = YOLO(str(model_path))
+
+    return models[model_name]
+
+
+# =========================
+# DATABASE
+# =========================
 
 def init_database():
 
@@ -53,13 +79,28 @@ def init_database():
     connection.close()
 
 
-def save_history(filename, model, image_path, total, counts, detections):
+def save_history(
+    filename,
+    model,
+    image_path,
+    total,
+    counts,
+    detections
+):
 
     connection = sqlite3.connect(DATABASE)
 
     connection.execute("""
         INSERT INTO detection_history
-        (filename, model, image_path, total, counts, detections, created_at)
+        (
+            filename,
+            model,
+            image_path,
+            total,
+            counts,
+            detections,
+            created_at
+        )
         VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (
         filename,
@@ -77,38 +118,63 @@ def save_history(filename, model, image_path, total, counts, detections):
 
 init_database()
 
+
+# =========================
+# VALIDASI FILE
+# =========================
+
 def allowed_file(filename):
 
     return (
         "." in filename
-        and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
+        and filename.rsplit(".", 1)[1].lower()
+        in ALLOWED_EXTENSIONS
     )
+
+
+# =========================
+# HALAMAN UTAMA
+# =========================
 
 @app.route("/")
 def index():
 
     return render_template("index.html")
 
+
+# =========================
+# DETEKSI
+# =========================
+
 @app.route("/detect", methods=["POST"])
 def detect():
 
     if "image" not in request.files:
-        return jsonify({"error": "Gambar belum dipilih."}), 400
+        return jsonify({
+            "error": "Gambar belum dipilih."
+        }), 400
 
     file = request.files["image"]
 
-    model_name = request.form.get("model", "yolov8s")
+    model_name = request.form.get(
+        "model",
+        "yolov8s"
+    )
 
     if file.filename == "":
-        return jsonify({"error": "Silakan pilih gambar."}), 400
+        return jsonify({
+            "error": "Silakan pilih gambar."
+        }), 400
 
     if not allowed_file(file.filename):
         return jsonify({
             "error": "Format gambar harus JPG, JPEG, atau PNG."
         }), 400
 
-    if model_name not in models:
-        return jsonify({"error": "Model tidak valid."}), 400
+    if model_name not in ["yolov8s", "yolo11s"]:
+        return jsonify({
+            "error": "Model tidak valid."
+        }), 400
 
     extension = file.filename.rsplit(".", 1)[1].lower()
 
@@ -120,24 +186,31 @@ def detect():
 
     try:
 
-        model = models[model_name]
+        # Model baru dimuat ketika dipilih
+        model = get_model(model_name)
 
         results = model.predict(
             source=str(image_path),
             imgsz=416,
             conf=0.25,
-            verbose=False
+            verbose=False,
+            device="cpu"
         )
 
         result = results[0]
 
         annotated_image = result.plot()
 
-        output_filename = f"result_{filename.rsplit('.', 1)[0]}.jpg"
+        output_filename = (
+            f"result_{filename.rsplit('.', 1)[0]}.jpg"
+        )
 
         output_path = UPLOAD_DIR / output_filename
 
-        cv2.imwrite(str(output_path), annotated_image)
+        cv2.imwrite(
+            str(output_path),
+            annotated_image
+        )
 
         counts = {
             name: 0 for name in CLASS_NAMES
@@ -156,7 +229,10 @@ def detect():
 
             detections.append({
                 "class": class_name,
-                "confidence": round(confidence * 100, 2)
+                "confidence": round(
+                    confidence * 100,
+                    2
+                )
             })
 
         result_image = f"/uploads/{output_filename}"
@@ -181,9 +257,16 @@ def detect():
 
     except Exception as e:
 
+        app.logger.exception("Deteksi gagal")
+
         return jsonify({
             "error": f"Deteksi gagal: {str(e)}"
         }), 500
+
+
+# =========================
+# HISTORY
+# =========================
 
 @app.route("/history")
 def history():
@@ -217,6 +300,11 @@ def history():
         "history.html",
         histories=history_data
     )
+
+
+# =========================
+# DASHBOARD
+# =========================
 
 @app.route("/dashboard")
 def dashboard():
@@ -256,7 +344,8 @@ def dashboard():
         for class_name in class_totals:
 
             class_totals[class_name] += counts.get(
-                class_name, 0
+                class_name,
+                0
             )
 
         if item["model"] in model_totals:
@@ -284,6 +373,15 @@ def dashboard():
         recent_histories=recent_histories
     )
 
+
+# =========================
+# RUN FLASK
+# =========================
+
 if __name__ == "__main__":
 
-    app.run(debug=True)
+    app.run(
+        host="0.0.0.0",
+        port=7860,
+        debug=False
+    )
