@@ -16,7 +16,7 @@ app = Flask(
 
 BASE_DIR = Path(__file__).resolve().parent
 MODEL_DIR = BASE_DIR / "models"
-UPLOAD_DIR = BASE_DIR / "static" / "uploads"
+UPLOAD_DIR = BASE_DIR / "public" / "uploads"
 DATABASE = BASE_DIR / "history.db"
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -159,7 +159,7 @@ def detect():
                 "confidence": round(confidence * 100, 2)
             })
 
-        result_image = f"/static/uploads/{output_filename}"
+        result_image = f"/uploads/{output_filename}"
 
         save_history(
             filename=file.filename,
